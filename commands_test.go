@@ -13,9 +13,9 @@ func TestCommandInterface(t *testing.T) {
 		fmt.Printf("error reading config. error: %v\n", err)
 	}
 
-	state := State{config: &cfg}
-	commands := Commands{
-		cmds: make(map[string]func(*State, Command) error),
+	programState := state{cfg: &cfg}
+	commands := commands{
+		cmds: make(map[string]func(*state, command) error),
 	}
 
 	commands.register("login", handlerLogin)
@@ -44,8 +44,8 @@ func TestCommandInterface(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			cmd := Command{name: c.input[1], args: c.input}
-			err := commands.run(&state, cmd)
+			cmd := command{name: c.input[1], args: c.input}
+			err := commands.run(&programState, cmd)
 
 			if !errorsAreEqual(err, c.expected) {
 				t.Errorf("Test case %q failed: input %v, expected error: %v, got: %v", c.name, c.input, c.expected, err)
