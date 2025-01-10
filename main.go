@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/derjabineli/gator/internal/config"
+	"github.com/derjabineli/gator/internal/database"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -13,12 +16,20 @@ func main() {
 		fmt.Printf("error reading config. error: %v\n", err)
 	}
 
-	state := State{config: &cfg}
-	commands := Commands{
-		cmds: make(map[string]func(*State, Command) error),
+	db, err := sql.Open("postgres", cfg.DbURL)
+	if err != nil {
+		fmt.Printf("cant open database connection. error: %v", err)
+	}
+
+	dbQueries := database.New(db)
+
+	programState := state{cfg: &cfg, db: dbQueries}
+	commands := commands{
+		cmds: make(map[string]func(*state, command) error),
 	}
 
 	commands.register("login", handlerLogin)
+	commands.register("register", handlerRegister)
 
 	args := os.Args
 
@@ -27,11 +38,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	cmd := Command{name: args[1], args: args}
+	cmd := command{name: args[1], args: args}
 
-	err = commands.run(&state, cmd)
+	err = commands.run(&programState, cmd)
 	if err != nil {
-		fmt.Printf("error: %v", err)
+		fmt.Printf("\033[0;31m error:\033[0m %v\n", err)
 		os.Exit(1)
 	}
 
