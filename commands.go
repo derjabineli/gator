@@ -1,29 +1,34 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/derjabineli/gator/internal/config"
+	"github.com/derjabineli/gator/internal/database"
+	"github.com/google/uuid"
 )
 
-type State struct {
-	config *config.Config
+type state struct {
+	db  *database.Queries
+	cfg *config.Config
 }
 
-type Command struct {
+type command struct {
 	name string
 	args []string
 }
 
-type Commands struct {
-	cmds map[string]func(*State, Command) error
+type commands struct {
+	cmds map[string]func(*state, command) error
 }
 
-func (c *Commands) register(name string, f func(*State, Command) error) {
+func (c *commands) register(name string, f func(*state, command) error) {
 	c.cmds[name] = f
 }
 
-func (c *Commands) run(s *State, cmd Command) error {
+func (c *commands) run(s *state, cmd command) error {
 	command, exists := c.cmds[cmd.name]
 	if !exists{
 		return fmt.Errorf("the provided command does not exist")
@@ -36,18 +41,39 @@ func (c *Commands) run(s *State, cmd Command) error {
 	return nil
 }
 
-func handlerLogin(s *State, cmd Command) error {
+func handlerLogin(s *state, cmd command) error {
 	if len(cmd.args) < 3 {
 		return fmt.Errorf("you must provide a username")
 	}
 
 	userName := cmd.args[2]
 
-	err := s.config.SetUser(userName)
+	user, err := s.db.GetUser(context.Background(), userName)
+	if err != nil {
+		return fmt.Errorf("username not found")
+	}
+
+	err = s.cfg.SetUser(user.Name)
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("The User has successfully been set to %s\n", userName)
+	return nil
+}
+
+func handlerRegister(s *state, cmd command) error {
+	if len(cmd.args) < 3 {
+		return fmt.Errorf("you must provide a username")
+	}
+
+	userName := cmd.args[2]
+
+	user, err := s.db.CreateUser(context.Background(), database.CreateUserParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), Name: userName})
+	if err != nil {
+		return fmt.Errorf("username not available")
+	}
+
+	s.cfg.SetUser(user.Name)
 	return nil
 }
