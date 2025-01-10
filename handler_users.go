@@ -52,3 +52,23 @@ func handlerReset(s *state, cmd command) error {
 	}
 	return nil
 }
+
+func handlerGetUsers(s *state, cmd command) error {
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("users not found")
+	}
+
+	printUsers(s.cfg.CurrentUserName, users)
+	return nil
+}
+
+func printUsers(currentUser string, users []database.User) {
+	for _, user := range users {
+		if user.Name == currentUser {
+			fmt.Printf("* %v (current)\n", user.Name)
+		} else {
+			fmt.Printf("* %v\n", user.Name)
+		}
+	} 
+}
