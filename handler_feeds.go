@@ -31,3 +31,18 @@ func handlerAddFeed(s *state, cmd command) error {
 	return nil
 }
 
+func handlerGetFeeds(s *state, cmd command) error {
+	feeds, err := s.db.GetAllFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("could not retrieve rss feeds")
+	}
+
+	fmt.Println("Feeds:")
+	fmt.Println("------------------------------")
+	for _, feed := range feeds {
+		fmt.Println(feed.Name)
+		fmt.Printf("  -URL: %v\n", feed.Url)
+		fmt.Printf("  -Created By: %v\n", feed.UserName.String)
+	}
+	return nil
+}
