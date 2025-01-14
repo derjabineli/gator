@@ -45,14 +45,6 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
-func handlerReset(s *state, cmd command) error {
-	err := s.db.ResetUsers(context.Background())
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func handlerGetUsers(s *state, cmd command) error {
 	users, err := s.db.GetUsers(context.Background())
 	if err != nil {
@@ -71,14 +63,4 @@ func printUsers(currentUser string, users []database.User) {
 			fmt.Printf("* %v\n", user.Name)
 		}
 	} 
-}
-
-func handlerAggregate(s *state, cmd command) error {
-	rss, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	if err != nil {
-		return err
-	}
-
-	fmt.Print(rss)
-	return nil
 }
