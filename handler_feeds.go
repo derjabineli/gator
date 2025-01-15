@@ -89,3 +89,23 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 	}
 	return nil
 }
+
+func handlerUnfollowFeed(s *state, cmd command, user database.User) error {
+	if len(cmd.args) < 3 {
+		return fmt.Errorf("must provide a rss feed url")
+	}
+	ctx := context.Background()
+	url := cmd.args[2]
+	
+	feed, err := s.db.GetFeedByURL(ctx, url)
+	if err != nil {
+		return fmt.Errorf("user not following %v", url)
+	}
+
+	err = s.db.UnfollowFeed(ctx, database.UnfollowFeedParams{UserID: user.ID, FeedID: feed.ID})
+	if err != nil {
+		return fmt.Errorf("could not unfollow feed. details: %v", err)
+	}
+
+	return nil
+}
