@@ -9,17 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.args) < 4 {
 		return fmt.Errorf("you must provide a rss feed name and url") 
 	}
 
 	ctx := context.Background()
-	
-	user, err := s.db.GetUserByName(ctx, s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("user not logged in")
-	}
 
 	name := cmd.args[2]
 	url := cmd.args[3]
@@ -58,7 +53,7 @@ func handlerGetFeeds(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowFeed(s *state, cmd command) error {
+func handlerFollowFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.args) < 3 {
 		return fmt.Errorf("must provide a rss feed url")
 	}
@@ -68,10 +63,6 @@ func handlerFollowFeed(s *state, cmd command) error {
 	feed, err := s.db.GetFeedByURL(ctx, url)
 	if err != nil {
 		return fmt.Errorf("feed does not exist")
-	}
-	user, err := s.db.GetUserByName(ctx, s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("could not subscribe to feed")
 	}
 
 	followFeed, err := s.db.CreateFeedFollow(ctx, database.CreateFeedFollowParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), UserID: user.ID, FeedID: feed.ID})
@@ -83,12 +74,8 @@ func handlerFollowFeed(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	ctx := context.Background()
-	user, err := s.db.GetUserByName(ctx, s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("could not find user")
-	}
 
 	feeds, err := s.db.GetFeedFollowsForUser(ctx, user.ID)
 	if err != nil {

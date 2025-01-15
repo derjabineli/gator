@@ -33,10 +33,11 @@ func main() {
 	commands.register("reset", handlerReset)
 	commands.register("users", handlerGetUsers)
 	commands.register("agg", handlerAggregate)
-	commands.register("addfeed", handlerAddFeed)
+	commands.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	commands.register("feeds", handlerGetFeeds)
-	commands.register("follow", handlerFollowFeed)
-	commands.register("following", handlerFollowing)
+	commands.register("follow", middlewareLoggedIn(handlerFollowFeed))
+	commands.register("following", middlewareLoggedIn(handlerFollowing))
+	
 	
 
 	args := os.Args
