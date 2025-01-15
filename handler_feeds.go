@@ -13,8 +13,10 @@ func handlerAddFeed(s *state, cmd command) error {
 	if len(cmd.args) < 4 {
 		return fmt.Errorf("you must provide a rss feed name and url") 
 	}
+
+	ctx := context.Background()
 	
-	user, err := s.db.GetUserByName(context.Background(), s.cfg.CurrentUserName)
+	user, err := s.db.GetUserByName(ctx, s.cfg.CurrentUserName)
 	if err != nil {
 		return fmt.Errorf("user not logged in")
 	}
@@ -22,9 +24,14 @@ func handlerAddFeed(s *state, cmd command) error {
 	name := cmd.args[2]
 	url := cmd.args[3]
 	
-	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), Name: name, Url: url, UserID: user.ID})
+	feed, err := s.db.CreateFeed(ctx, database.CreateFeedParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), Name: name, Url: url, UserID: user.ID})
 	if err != nil {
 		return fmt.Errorf("create feed failed %v", err)
+	}
+
+	_, err = s.db.CreateFeedFollow(ctx, database.CreateFeedFollowParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), UserID: user.ID, FeedID: feed.ID})
+	if err != nil {
+		return fmt.Errorf("could not subscribe to feed")
 	}
 
 	fmt.Print(feed)
@@ -73,5 +80,25 @@ func handlerFollowFeed(s *state, cmd command) error {
 	}
 
 	fmt.Printf("%v subscribed to %v\n", followFeed.UserName, followFeed.FeedName)
+	return nil
+}
+
+func handlerFollowing(s *state, cmd command) error {
+	ctx := context.Background()
+	user, err := s.db.GetUserByName(ctx, s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("could not find user")
+	}
+
+	feeds, err := s.db.GetFeedFollowsForUser(ctx, user.ID)
+	if err != nil {
+		return fmt.Errorf("could not find followed feeds")
+	}
+
+	fmt.Println("Followed Feeds:")
+	fmt.Println("---------------------")
+	for _, feed := range feeds {
+		fmt.Printf("  - %v\n", feed.Name.String)
+	}
 	return nil
 }
