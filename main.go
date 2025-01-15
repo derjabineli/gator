@@ -35,6 +35,7 @@ func main() {
 	commands.register("agg", handlerAggregate)
 	commands.register("addfeed", handlerAddFeed)
 	commands.register("feeds", handlerGetFeeds)
+	commands.register("follow", handlerFollowFeed)
 	
 
 	args := os.Args
