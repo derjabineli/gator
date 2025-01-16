@@ -21,7 +21,7 @@ func middlewareLoggedIn(handler func(s *state, cmd command, user database.User) 
 
 		err = handler(s, cmd, user)
 		if err != nil {
-			return fmt.Errorf("please log in or register before continuing")
+			return err
 		}
 		return nil
     }
