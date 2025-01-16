@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/derjabineli/gator/internal/database"
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func handlerAggregate(s *state, cmd command, user database.User) error {
@@ -48,16 +51,31 @@ func scrapeFeeds(s *state, user database.User) error {
 		return fmt.Errorf("could not fetch rss feed. details: %v", err)
 	}
 
-	printRSSItems(*rss)
+	savePosts(s, *rss, feed.ID)
 	return nil
 }
 
-func printRSSItems(rss RSSFeed) {
-	fmt.Printf("%v\n", rss.Channel.Title)
-
+func savePosts(s *state, rss RSSFeed, feedId uuid.UUID) {
+	ctx := context.Background()
 	for _, item := range rss.Channel.Item {
-		fmt.Println(item.Title)
-	}
+		publishDate, err := time.Parse(time.RFC1123Z, item.PubDate)
+		var dbPublishDate sql.NullTime
 
-	fmt.Println()
+		if err != nil {
+			dbPublishDate = sql.NullTime{Valid: false}
+		} else {
+			dbPublishDate = sql.NullTime{Time: publishDate, Valid: true}
+		}
+
+		_, err = s.db.CreatePost(ctx, database.CreatePostParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), Title: sql.NullString{String: item.Title, Valid: true}, Url: item.Link, Description: sql.NullString{String: item.Description, Valid: true}, PublishedAt: dbPublishDate, FeedID: feedId})
+
+		var pgErr *pq.Error
+		if ok := errors.As(err, &pgErr); ok {
+			if pgErr.Code == "23505" {
+				continue
+			} else {
+				fmt.Printf("Encountered Error: %v\n", err)
+			}
+		}
+	}
 }
