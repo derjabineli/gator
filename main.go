@@ -38,6 +38,7 @@ func main() {
 	commands.register("follow", middlewareLoggedIn(handlerFollowFeed))
 	commands.register("following", middlewareLoggedIn(handlerFollowing))
 	commands.register("unfollow", middlewareLoggedIn(handlerUnfollowFeed))
+	commands.register("browse", middlewareLoggedIn(handlerBrowse))
 	
 	
 
