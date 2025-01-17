@@ -1,6 +1,6 @@
-# Gator
+# gator
 
-Gator is CLI RSS Feed tool. Gator uses a local database to allow you to register and login various users. Users can add and follow RSS feeds that will aggregate based on a specified duration. Once a user is following an RSS feed they can see the aggregated posts in their CLI with a title, link to complete post, and a short description. Gator is intended to run continously in the background and will continue to aggregate as long as it is active.
+gator is CLI RSS Feed tool. gator uses a local database to allow you to register and login various users. Users can add and follow RSS feeds that will aggregate based on a specified duration. Once a user is following an RSS feed they can see the aggregated posts in their CLI with a title, link to complete post, and a short description. gator is intended to run continously in the background and will continue to aggregate as long as it is active.
 
 ## Table of Contents
 
@@ -12,7 +12,7 @@ Gator is CLI RSS Feed tool. Gator uses a local database to allow you to register
 
 [Go](https://go.dev/doc/install) (version 1.23+)
 
-- Go is required to be installed so that you can run Go's install command and install Gator on your own machine
+- Go is required to be installed so that you can run Go's install command and install gator on your own machine
 
 [Postgres](https://www.postgresql.org/download/)
 
